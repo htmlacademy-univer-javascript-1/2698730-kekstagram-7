@@ -1,8 +1,15 @@
-import {createPhoto} from './create-photo.js';
+import {getData} from './api.js';
 import {renderPictures} from './pictures.js';
+import {showDataError} from './messages.js';
 import './upload-form.js';
 
-const PHOTOS_COUNT = 25;
+const initApp = async () => {
+  try {
+    const photos = await getData();
+    renderPictures(photos);
+  } catch (err) {
+    showDataError(err.message);
+  }
+};
 
-const photos = Array.from({length: PHOTOS_COUNT}, createPhoto);
-renderPictures(photos);
+initApp();

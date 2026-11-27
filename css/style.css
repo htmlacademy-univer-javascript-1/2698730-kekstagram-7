@@ -1395,3 +1395,24 @@ main {
 .hidden {
   display: none;
 }
+
+.error {
+  z-index: 3;
+}
+
+.data-error {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+
+  padding: 15px 20px;
+
+  font-size: 18px;
+  line-height: 1.4;
+  text-align: center;
+  color: #ffffff;
+
+  background-color: #e03c3c;
+}

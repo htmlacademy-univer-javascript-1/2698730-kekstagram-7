@@ -1,10 +1,18 @@
+import {isEscapeKey} from './util.js';
 import {initScale, destroyScale} from './scale.js';
 import {initEffects, destroyEffects} from './effects.js';
+import {sendData} from './api.js';
+import {showSuccessMessage, showErrorMessage, isMessageShown} from './messages.js';
 
 const MAX_HASHTAGS_COUNT = 5;
 const MAX_HASHTAG_LENGTH = 20;
 const MAX_DESCRIPTION_LENGTH = 140;
 const HASHTAG_PATTERN = new RegExp(`^#[a-zа-яё0-9]{1,${MAX_HASHTAG_LENGTH - 1}}$`, 'i');
+
+const SubmitButtonText = {
+  IDLE: 'Опубликовать',
+  SENDING: 'Публикую...',
+};
 
 const ErrorMessage = {
   INVALID_HASHTAG: 'Введён невалидный хэш-тег',
@@ -19,6 +27,7 @@ const uploadOverlayElement = uploadFormElement.querySelector('.img-upload__overl
 const uploadCancelElement = uploadFormElement.querySelector('.img-upload__cancel');
 const hashtagsInputElement = uploadFormElement.querySelector('.text__hashtags');
 const descriptionInputElement = uploadFormElement.querySelector('.text__description');
+const submitButtonElement = uploadFormElement.querySelector('.img-upload__submit');
 
 const pristine = new Pristine(uploadFormElement, {
   classTo: 'img-upload__field-wrapper',
@@ -59,8 +68,18 @@ const validateDescription = (value) => value.length <= MAX_DESCRIPTION_LENGTH;
 pristine.addValidator(hashtagsInputElement, validateHashtags, getHashtagsErrorMessage);
 pristine.addValidator(descriptionInputElement, validateDescription, ErrorMessage.DESCRIPTION_LENGTH);
 
+const blockSubmitButton = () => {
+  submitButtonElement.disabled = true;
+  submitButtonElement.textContent = SubmitButtonText.SENDING;
+};
+
+const unblockSubmitButton = () => {
+  submitButtonElement.disabled = false;
+  submitButtonElement.textContent = SubmitButtonText.IDLE;
+};
+
 const onTextFieldKeydown = (evt) => {
-  if (evt.key === 'Escape') {
+  if (isEscapeKey(evt)) {
     evt.stopPropagation();
   }
 };
@@ -81,7 +100,7 @@ const closeUploadForm = () => {
 };
 
 function onDocumentKeydown(evt) {
-  if (evt.key === 'Escape') {
+  if (isEscapeKey(evt) && !isMessageShown()) {
     evt.preventDefault();
     closeUploadForm();
   }
@@ -92,9 +111,23 @@ function onUploadCancelClick(evt) {
   closeUploadForm();
 }
 
-function onUploadFormSubmit(evt) {
+async function onUploadFormSubmit(evt) {
+  evt.preventDefault();
+
   if (!pristine.validate()) {
-    evt.preventDefault();
+    return;
+  }
+
+  blockSubmitButton();
+
+  try {
+    await sendData(new FormData(uploadFormElement));
+    closeUploadForm();
+    showSuccessMessage();
+  } catch (err) {
+    showErrorMessage();
+  } finally {
+    unblockSubmitButton();
   }
 }
 

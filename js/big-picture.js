@@ -1,3 +1,5 @@
+import {isEscapeKey} from './util.js';
+
 const COMMENTS_STEP = 5;
 const AVATAR_SIZE = 35;
 
@@ -76,7 +78,7 @@ const closeBigPicture = () => {
 };
 
 function onDocumentKeydown(evt) {
-  if (evt.key === 'Escape') {
+  if (isEscapeKey(evt)) {
     evt.preventDefault();
     closeBigPicture();
   }
